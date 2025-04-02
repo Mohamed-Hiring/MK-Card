@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Card from "../components/ui/card";
 import CardContent from "../components/ui/cardContent";
 import Input from "../components/ui/input";
 import Label from "../components/ui/label";
 import Button from "../components/ui/button";
-import data from "../data/hiring_cards_data.json";
+import hiringCards from "../data/hiring_cards_data.json";
 
 export default function HiringCardList() {
   const [cardsData, setCardsData] = useState([]);
@@ -37,15 +38,16 @@ export default function HiringCardList() {
   });
 
   useEffect(() => {
-    setCardsData(data);
+    setCardsData(hiringCards);
   }, []);
 
   const filtered = cardsData.filter((card) => {
     const searchMatch =
-      card.cardNumber.includes(search) ||
+      card.cardNumber.toString().includes(search) ||
       card.customerName.toLowerCase().includes(search.toLowerCase());
 
-    const statusMatch = statusFilter === "" || card.status === statusFilter;
+    const statusMatch =
+      statusFilter === "" || card.status === statusFilter;
 
     const monthMatch =
       monthFilter === "" ||
@@ -54,24 +56,24 @@ export default function HiringCardList() {
     return searchMatch && statusMatch && monthMatch;
   });
 
-  const toggleColumn = (col) => {
+  const exportToExcel = () => {
+    alert("Exporting to Excel (dummy action)");
+  };
+
+  const toggleColumn = (col: string) => {
     setColumnsShown({ ...columnsShown, [col]: !columnsShown[col] });
   };
 
-  const exportToExcel = () => {
-    alert("Exporting to Excel (placeholder)");
-  };
-
-  const handleNewCardChange = (field, value) => {
+  const handleNewCardChange = (field: string, value: string) => {
     setNewCard((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAddCard = () => {
-    if (!newCard.customerName || !newCard.machineryName) return;
-    setCardsData((prev) => [...prev, newCard]);
+    if (!newCard.cardNumber || !newCard.customerName) return;
+    setCardsData([...cardsData, newCard]);
     setShowAddForm(false);
     setNewCard({
-      cardNumber: (parseInt(cardsData[cardsData.length - 1]?.cardNumber || "100000") + 1).toString(),
+      cardNumber: "",
       customerName: "",
       machineryName: "",
       location: "",
@@ -90,7 +92,7 @@ export default function HiringCardList() {
 
       <div className="flex flex-wrap gap-4 mb-4 items-center">
         <Input
-          placeholder="Search by Card # or Customer"
+          placeholder="Search by Card Number or Customer Name"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-64"
@@ -123,20 +125,14 @@ export default function HiringCardList() {
           Export to Excel
         </Button>
         <Button
-          onClick={() => {
-            const nextCardNumber = (
-              parseInt(cardsData[cardsData.length - 1]?.cardNumber || "100000") + 1
-            ).toString();
-            setNewCard((prev) => ({ ...prev, cardNumber: nextCardNumber }));
-            setShowAddForm(true);
-          }}
+          onClick={() => setShowAddForm(true)}
           className="bg-green-600 text-white"
         >
           + Add Card
         </Button>
       </div>
 
-      <div className="mb-6 flex gap-3 flex-wrap">
+      <div className="mb-6 flex gap-2 flex-wrap">
         {Object.entries(columnsShown).map(([key, value]) => (
           <label key={key} className="text-sm">
             <input
@@ -154,7 +150,7 @@ export default function HiringCardList() {
         {filtered.map((card) => (
           <Card
             key={card.cardNumber}
-            className={`cursor-pointer border px-4 py-2 rounded-xl hover:shadow-md transition duration-200 ${
+            className={`cursor-pointer border px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition duration-200 ${
               card.status === "Received"
                 ? "text-green-700 border-green-300"
                 : card.status === "Cancel"
@@ -205,7 +201,6 @@ export default function HiringCardList() {
         ))}
       </div>
 
-      {/* Pop-up for details */}
       {selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-xl">
@@ -218,7 +213,7 @@ export default function HiringCardList() {
                   <Label className="uppercase text-sm font-bold">
                     {key.replace(/([A-Z])/g, " $1").toUpperCase()}
                   </Label>
-                  <div>{value || "-"}</div>
+                  <div>{String(value ?? "-")}</div>
                 </div>
               ))}
             </div>
@@ -227,14 +222,14 @@ export default function HiringCardList() {
                 onClick={() => setSelectedCard(null)}
                 className="bg-gray-300 text-black"
               >
-                Close
+                Cancel
               </Button>
+              <Button className="bg-purple-700 text-white">Save</Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Pop-up for adding card */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-xl">
@@ -261,10 +256,7 @@ export default function HiringCardList() {
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleAddCard}
-                className="bg-green-600 text-white"
-              >
+              <Button onClick={handleAddCard} className="bg-green-600 text-white">
                 Add
               </Button>
             </div>
