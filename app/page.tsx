@@ -69,8 +69,17 @@ export default function HiringCardList() {
   };
 
   const handleAddCard = () => {
-    if (!newCard.cardNumber || !newCard.customerName) return;
-    setCardsData([...cardsData, newCard]);
+    if (!newCard.customerName) return;
+
+    const allNumbers = cardsData.map((c) => parseInt(c.cardNumber)).filter(Boolean);
+    const nextNumber = allNumbers.length > 0 ? Math.max(...allNumbers) + 1 : 100000;
+
+    const cardWithNumber = {
+      ...newCard,
+      cardNumber: nextNumber.toString(),
+    };
+
+    setCardsData([...cardsData, cardWithNumber]);
     setShowAddForm(false);
     setNewCard({
       cardNumber: "",
@@ -256,7 +265,10 @@ export default function HiringCardList() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddCard} className="bg-green-600 text-white">
+              <Button
+                onClick={handleAddCard}
+                className="bg-green-600 text-white"
+              >
                 Add
               </Button>
             </div>
