@@ -1,0 +1,1 @@
+// This file should contain the main page logic - already managed in canvas.
